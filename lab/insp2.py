@@ -1,0 +1,15 @@
+﻿import pandas as pd, warnings
+warnings.filterwarnings("ignore")
+R = r"lab\reports"
+s = pd.read_excel(f"{R}\\sector_regime_report_v0.98.0.xlsx", sheet_name="13c_일별배분비중")
+print("S13c cols:", list(s.columns)); print(s.tail(3).T.head(40).to_string())
+old = pd.read_csv(r"signals\sector_allocation_daily.csv", encoding="utf-8-sig", nrows=2)
+print("old S cols:", list(old.columns)[:40])
+i = pd.read_excel(f"{R}\\industry_regime_report_v0.63.0.xlsx", sheet_name="13c_일별배분비중")
+print("I13c cols:", list(i.columns)[:40], i.shape, i.iloc[-1, 0])
+oldi = pd.read_csv(r"signals\industry_allocation_daily.csv", encoding="utf-8-sig", nrows=2)
+print("old I cols:", list(oldi.columns)[:40])
+k = pd.read_excel(f"{R}\\stock_regime_report_v0.31.0.xlsx", sheet_name="13c_일별배분비중")
+print("K13c cols:", list(k.columns), k.shape); print(k.tail(4).to_string())
+m = pd.read_excel(f"{R}\\market_regime_report_v1.83.0.xlsx", sheet_name="01_일별기록")
+print("M cols:", list(m.columns)); print(m[["날짜", "시장상황", "목표비중", "체결비중"]].tail(12).to_string())

@@ -1,0 +1,56 @@
+{
+ "signals": {
+  "files": 37,
+  "zip_bytes": 10786747,
+  "sha256": "68c71b7af31b5ae9db10b269c69373b1012f069a4a46af78debdeeea7db8fe4b",
+  "parts": [
+   "signals.zip.001",
+   "signals.zip.002"
+  ]
+ },
+ "data_core": {
+  "files": 15,
+  "zip_bytes": 43721088,
+  "sha256": "d9023608d4a03a8095fe4a49d1058d3f66138b1c5ab2a737cb45020c7a9fe2c1",
+  "parts": [
+   "data_core.zip.001",
+   "data_core.zip.002",
+   "data_core.zip.003",
+   "data_core.zip.004",
+   "data_core.zip.005"
+  ]
+ },
+ "results_x": {
+  "files": 2979,
+  "zip_bytes": 82071841,
+  "sha256": "60cad283e7a08a90e90960e1c40e766315c99845642ab6c7ba206128c7d5d228",
+  "parts": [
+   "results_x.zip.001",
+   "results_x.zip.002",
+   "results_x.zip.003",
+   "results_x.zip.004",
+   "results_x.zip.005",
+   "results_x.zip.006",
+   "results_x.zip.007",
+   "results_x.zip.008",
+   "results_x.zip.009"
+  ]
+ },
+ "older_outputs": {
+  "files": 1246,
+  "zip_bytes": 90680833,
+  "sha256": "b67748054c56a6647df2005ff326ac89f1e51db2badf6df018d067e7d21435f0",
+  "parts": [
+   "older_outputs.zip.001",
+   "older_outputs.zip.002",
+   "older_outputs.zip.003",
+   "older_outputs.zip.004",
+   "older_outputs.zip.005",
+   "older_outputs.zip.006",
+   "older_outputs.zip.007",
+   "older_outputs.zip.008",
+   "older_outputs.zip.009",
+   "older_outputs.zip.010"
+  ]
+ }
+}

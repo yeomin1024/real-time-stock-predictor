@@ -1026,3 +1026,41 @@ ROUNDS["G10_robust_P8"] = [
     ("P8 무작위순", dict(P8, tick_order="random", path_seed=3)),
 ]
 ROUNDS["G10b_lag1"] = [("P8 신호1일지연", P8)]
+
+# H01 (2026-10-07): M v1.86 · S v1.02 · I v0.66 · K v0.36(숏 = 실제 −1배 ETF · AVB→MAA) — SIG=signals_v4 로 실행
+#   기준(같은 코드): 숏 열 무시(= v1.0.0 실행기 동작) / 숏 따라가기(실제 봉만) / 숏 + 상장 전 가상 −1배 / 작은 K 몫 → 섹터 ETF
+from xres import KUNI_S, K, SIG_DIR as SIG_DIR_
+_INVS = set(K.INVERSE_1X_ETFS)
+_P8v = dict(P8, universe=KUNI)
+_OLD58 = [c for c in BASE58 if c != "MAA"]
+ROUNDS["H01_v4"] = [
+    ("P8 v4 숏 무시(v1.0.0 동작)", dict(P8, universe=[c for c in KUNI if c not in _INVS])),
+    ("P8 v4 숏 따라감", _P8v),
+    ("P8 v4 숏 따라감+상장전 가상", dict(_P8v, inv_synth=True)),
+    ("P8 v4 숏 따라감 · 작은몫→섹터ETF", dict(P8, universe=KUNI_S, k_small_to_etf=True)),
+    ("P8 v4 숏 · 작은몫→섹터ETF+가상", dict(P8, universe=KUNI_S, k_small_to_etf=True, inv_synth=True)),
+]
+ROUNDS["H00_v3_regress"] = [("P8", P8)]          # SIG=signals_v3: 코드 v1.1.0이 예전 결과(+5,419%)를 그대로 내는지
+ROUNDS["H02_mix"] = [("P8 숏 따라감", P8)]          # SIG=signals_mix_v3K4 / signals_mix_v4K3 로 각각: v3→v4 변화가 M·S·I 때문인지 K 때문인지
+# H03: K v0.34+ 작은 바구니(풀 종목 < 2%) 처리 — 풀 몫만 섹터 ETF로 되돌리기 · 최소 비중 낮추기
+ROUNDS["H03_small"] = [
+    ("풀 작은몫→섹터ETF", dict(_P8v, universe=KUNI_S, k_small_to_etf=True, k_small_pool_only=True)),
+    ("풀 작은몫→섹터ETF+가상", dict(_P8v, universe=KUNI_S, k_small_to_etf=True, k_small_pool_only=True, inv_synth=True)),
+    ("최소비중1%", dict(_P8v, universe=sorted(K.k_symbols(SIG_DIR_, base={c: "NA" for c in BASE58}, min_weight=0.01)), k_min_weight=0.01)),
+    ("최소비중0.5%", dict(_P8v, universe=sorted(K.k_symbols(SIG_DIR_, base={c: "NA" for c in BASE58}, min_weight=0.005)), k_min_weight=0.005)),
+]
+# H04: v4 신호에서 K 배율 × 모멘텀 1위 몫 다시 맞추기(숏 따라감 · 실제 봉) — 판정 mdd15wr80
+ROUNDS["H04_grid"] = [(f"K{k} 1위{p}%", dict(_P8v, k_rot_scale=k, rot_pct=float(p))) for k in (1.3, 1.5, 1.7) for p in (30, 35, 40)]
+# H05: 견고성 — P8 × v4 신호(숏 따라감). G10과 같은 세트 + 상장 전 가상 숏 + 처리 순서
+_KX4 = [c for c in KUNI if c not in BASE58]
+ROUNDS["H05_robust_P8v4"] = [
+    ("P8", _P8v), ("P8 +상장전 가상숏", dict(_P8v, inv_synth=True)),
+    ("P8 고가먼저", dict(_P8v, path_order="high_first")),
+    ("P8 수수료0.15", dict(_P8v, fee_pct=0.15)), ("P8 슬리피지0.15", dict(_P8v, slippage_pct=0.15)),
+    ("P8 절반a", dict(_P8v, universe=sorted(_h[:29]) + _KX4)), ("P8 절반b", dict(_P8v, universe=sorted(_h[29:]) + _KX4)),
+    ("P8 SPY국면(M 대신)", dict(_P8v, regime="spy")),
+    ("P8 147일", dict(_P8v, rot_days=147)), ("P8 189일", dict(_P8v, rot_days=189)), ("P8 126일", dict(_P8v, rot_days=126)),
+    ("P8 58종만(K 확장 안 함)", dict(_P8v, universe=BASE58)),
+    ("P8 역순", dict(_P8v, tick_order="reverse")), ("P8 무작위순", dict(_P8v, tick_order="random", path_seed=3)),
+]
+ROUNDS["H05b_lag1"] = [("P8 신호1일지연", _P8v)]

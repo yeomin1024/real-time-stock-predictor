@@ -1,5 +1,6 @@
 """한 셀 Kaggle 실행기 검증(가짜 git·가짜 키움): 수집→push, 시뮬레이션→push, 가상계좌 복원, 토큰 비노출"""
 import ast, asyncio, contextlib, io, json, os, shutil, subprocess, sys, types
+import matplotlib; matplotlib.use("Agg"); import matplotlib.pyplot   # 글꼴 캐시를 가짜 subprocess 전에 만듦(새 컨테이너)
 
 WD = sys.argv[1]
 CELL = open(os.path.join(WD, "kaggle_runner_onecell.py"), encoding="utf-8").read()
@@ -8,9 +9,11 @@ REPO = os.path.join(BASE, "repo"); REMOTE = os.path.join(BASE, "remote"); OUT = 
 for d in (REPO, OUT):
     os.makedirs(d)
 os.makedirs(os.path.join(REPO, "signals")); os.makedirs(os.path.join(REPO, "results", "kaggle", "paper", "P8"))
-REPD = os.path.join(REPO, "results", "reports", "2026-10-02"); os.makedirs(REPD)        # 파이프라인 최신 리포트(M·S·I·K)
-for f in os.listdir(os.path.join(WD, "lab", "reports_v3", "2026-10-02")):          # M v1.85 · S v1.00 · I v0.65 · K v0.33
-    shutil.copy(os.path.join(WD, "lab", "reports_v3", "2026-10-02", f), REPD)
+# E2E_REP=reports_v4/2026-10-06 → M v1.86 · S v1.02 · I v0.66 · K v0.36(숏 −1배 ETF) / 기본 reports_v3/2026-10-02(K v0.33)
+E2E_REP = os.environ.get("E2E_REP", "reports_v3/2026-10-02")
+REPD = os.path.join(REPO, "results", "reports", os.path.basename(E2E_REP)); os.makedirs(REPD)        # 파이프라인 최신 리포트(M·S·I·K)
+for f in os.listdir(os.path.join(WD, "lab", E2E_REP)):
+    shutil.copy(os.path.join(WD, "lab", E2E_REP, f), REPD)
 for f in os.listdir(os.path.join(WD, "signals")):
     shutil.copy(os.path.join(WD, "signals", f), os.path.join(REPO, "signals"))
 json.dump({"cash": 12345.6, "start_cash": 10000, "realized": 2345.6, "fees": 10, "positions": {}},
@@ -88,6 +91,9 @@ assert {"sim_summary.json", "sim_equity.png", "sim_trades.csv", "sim_equity.csv"
 summ = json.load(open(os.path.join(REMOTE, "results", "kaggle", "sim", sims[0], "sim_summary.json"), encoding="utf-8"))
 assert summ["config"]["leverage"] == 1.0 and summ["config"]["entry_mode"] == "k+rot" and summ["config"]["rot_pct"] == 35.0 and summ["config"]["k_rot_scale"] == 1.5 and summ["config"]["batch_buys"] and summ["config"]["rot_base_only"] and {"XLK", "PLTR"} <= set(summ["config"]["symbols"]) and len(summ["config"]["symbols"]) >= 70 and summ["config"]["hold_loser_days"] == 20 and summ["config"]["hold_loser_stop_pct"] == 8.0 and summ["config"]["k_exit_days"] == 3 and "TQQQ" not in summ["config"]["symbols"] and "BTSG" in summ["config"]["symbols"]
 print("SIM METRICS:", summ["metrics"])
+assert "K 숏(−1배 ETF)" in out
+if "v4" in E2E_REP:                                                       # K v0.36: 숏 ETF가 거래 대상에 들어감
+    assert {"NVDD", "TSLS", "MAA"} <= set(summ["config"]["symbols"]) and "NVDD←NVDA" in out, summ["config"]["symbols"]
 assert json.load(open(os.path.join(OUT, "paper_account.json")))["cash"] == 12345.6           # GitHub에서 이어 받음
 assert "이어 쓰기: paper_account.json" in out
 print("PUSHES:", PUSHES)

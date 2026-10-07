@@ -46,6 +46,17 @@ SP_MAP = {c: SECTOR_ETF[s] for c, s in pickle.load(open(_secp, "rb")).items() if
 SP100 = sorted(SP_MAP)
 # K v0.33+가 배분한 58종 밖 종목·섹터 ETF까지(비중 2% 이상 한 번이라도) — 2026-10-05 S&P 500 확장 대응
 KUNI = sorted(K.k_symbols(SIG_DIR, base={c: "NA" for c in BASE58}, min_weight=0.02))
+KUNI_S = sorted(K.k_symbols(SIG_DIR, base={c: "NA" for c in BASE58}, min_weight=0.02, small_to_etf=True))   # + 섹터 ETF 11
+_INV = None
+
+
+def inv_synth_bars():
+    """−1배 ETF 실제 봉 + 실제 봉 없는 구간은 기초 종목 가상 −1배(lab/inv_synth.py)."""
+    global _INV
+    if _INV is None:
+        _INV = {c: df[df["ts"] <= END].reset_index(drop=True)
+                for c, df in pickle.load(open(os.path.join(DATA_DIR, "bars_60m_invsyn.pkl"), "rb")).items()}
+    return _INV
 ETF_LEV = {"TQQQ": 3, "QLD": 2, "UPRO": 3, "SSO": 2, "SPXL": 3, "TNA": 3, "SOXL": 3, "USD": 2, "TECL": 3, "ROM": 2,
            "LABU": 3, "FAS": 3, "NVDL": 2, "TSLL": 2, "CONL": 2}
 
@@ -56,7 +67,7 @@ def bars_all():
     global _BARS
     if _BARS is None:
         d = pickle.load(open(os.path.join(DATA_DIR, "bars_60m.pkl"), "rb"))
-        for extra in ("bars_60m_x.pkl", "bars_60m_sp.pkl", "bars_60m_k3.pkl"):
+        for extra in ("bars_60m_x.pkl", "bars_60m_sp.pkl", "bars_60m_k3.pkl", "bars_60m_k4.pkl"):   # k4: K v0.36 숏 ETF·MAA 등
             p = os.path.join(DATA_DIR, extra)
             if os.path.exists(p):
                 for c, df in pickle.load(open(p, "rb")).items():
@@ -89,6 +100,7 @@ def run_one(job):
     t0 = time.time()
     ov = dict(ov)
     path = {"path_order": ov.pop("path_order", "auto"), "path_seed": ov.pop("path_seed", 0), "tick_order": ov.pop("tick_order", "alpha")}
+    use_syn = ov.pop("inv_synth", False)
     cfg = make_cfg(ov)
     needs = cfg.regime in ("M", "spy") or cfg.sector_filter or cfg.industry_filter or cfg.rank_col
     sig = None
@@ -97,6 +109,8 @@ def run_one(job):
         sig = K.DailySignals(cfg, spy_series=R.spy_regime() if cfg.regime == "spy" else None)
     allb = bars_all()
     bars = {c: allb[c] for c in cfg.symbols if c in allb}
+    if use_syn:                                              # 상장 전·데이터 없는 −1배 ETF 구간을 가상 −1배로
+        bars.update({c: b for c, b in inv_synth_bars().items() if c in cfg.symbols})
     if cfg.mkt_stop_pct or cfg.mkt_flat_pct:
         bars[cfg.mkt_symbol] = allb[cfg.mkt_symbol]          # 시장 급락 판단용(거래 안 함)
     res = K.simulate(cfg, bars, sig, **path)

@@ -1,0 +1,16 @@
+# restore_archives.py로 archive/ 조각 zip에서 복원되는 폴더·생성 결과(원본은 archive/에만 둠)
+__pycache__/
+lab/data/
+lab/gh/
+lab/ghv/
+lab/out/
+lab/reports/
+lab/reports_v3/
+lab/reports_v4/
+lab/signals/
+lab/signals_*/
+results/
+results_minute/
+results_x/
+signals/
+_k3/

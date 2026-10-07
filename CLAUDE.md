@@ -42,7 +42,9 @@ PYTHONPATH=. python lab/test_x.py      # 단위 테스트(ALL NEW OPTIONS OK가 
 | `lab/test_*.py` | 테스트. `test_x`(옵션 단위), `test_p2~p8_live`(실시간 경로), `test_earn`, `test_e2e_runner`(실행기 전체) |
 | `lab/src/` | 사용자 파이프라인 코드 사본(M·S·I·K, 예전 버전). 최신은 yeomin1024/stock 루트에 있음 |
 | `lab/signals_v2`, `_v2_lag1` | M v1.83 · S v0.98 · I v0.63 · K v0.31 신호(CSV) / 하루 지연판 |
-| `lab/signals_v3`, `_v3_lag1` | **M v1.85 · S v1.00 · I v0.65 · K v0.33** 신호(현재) / 하루 지연판 |
+| `lab/signals_v3`, `_v3_lag1` | M v1.85 · S v1.00 · I v0.65 · K v0.33 신호 / 하루 지연판 |
+| `lab/signals_v4`, `_v4_lag1` | **M v1.86 · S v1.02 · I v0.66 · K v0.36** 신호(현재, `lab/build_v4.py`로 `lab/reports_v4/2026-10-06`에서 만듦) |
+| `lab/data/bars_60m_k4.pkl`, `bars_60m_invsyn.pkl` | K v0.36 새 종목(숏 −1배 ETF·MAA 등) 시간봉 / 상장 전 구간을 가상 −1배로 채운 판(`lab/inv_synth.py`) — 복원 대상 아님, 스크립트로 다시 만듦 |
 | `results_x/` | 모든 라운드 결과(`all_x_rounds.csv`, 라운드별 거래·자산·요약)와 보고서 md/xlsx |
 | `archive/` | 위 데이터·결과의 조각 zip + `MANIFEST.json`(sha256) |
 
@@ -83,7 +85,14 @@ SIG=signals_v3_lag1 TARGET_MODE=mdd15wr80 python lab/xres.py G10b_lag1
 SIG=signals_v3 python lab/greport.py     # 보고서 xlsx/png
 ```
 - `TARGET_MODE`: `mdd5`, `mdd10`, `r20k`(기본), `wr80`, `mdd15wr80`(현재 목표)
-- `xres.SIG` 기본값은 `signals_v2`입니다. **지금 작업은 `SIG=signals_v3`로** 하세요.
+- `xres.SIG` 기본값은 `signals_v2`입니다. **지금 작업은 `SIG=signals_v4`로** 하세요(먼저 `python lab/build_v4.py` · `python lab/inv_synth.py`).
+- 라운드 H00(v3 회귀) · H01(숏 무시/따라감/가상) · H02(층별 분해) · H03(작은 몫) · H04(K×몫 격자) · H05(견고성) · H05b(하루 지연).
+
+## 4a. 2026-10-07 갱신 — 실행기 v1.1.0 (yeomin1024/stock 0798a4e)
+- K v0.36 `숏:<ETF>` 열(실제 −1배 ETF)을 따라감. 이전 실행기는 이 열을 조용히 버렸음. −1배 ETF 실적 회피는 기초 종목 날짜. MAA 추가(59종).
+- P8 값 그대로(v4 격자에서도 최고): **+4,732% · MDD −14.61% · 승률 83.6%** (e2e +4,725%). v3 대비 감소는 K v0.34 예측 바구니(2% 미만 몫은 안 삼) 때문. M·S·I 변경은 영향 0.
+- 숏 체결 6건 · 손익 $0 — 효과 사실상 0. 하루 지연 MDD −17.1%(실패) · 189일 −15.75% · SPY 국면 −34.8%. SNDK 46%.
+- 보고서: yeomin1024/stock `results/research/p8/P8_v4_보고서.md`. 테스트에 `lab/test_v110.py` 추가(`V110 OK`). e2e는 `E2E_REP=reports_v4/2026-10-06`.
 
 ## 4. 현재 상태 (2026-10-05)
 - **사용자 목표 변화**:
